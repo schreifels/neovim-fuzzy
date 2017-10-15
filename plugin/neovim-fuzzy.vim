@@ -115,7 +115,7 @@ command! -nargs=? FuzzyGrep   call s:fuzzy_grep(<q-args>)
 "       root), b.) expose a function (not sure how to do this without renaming
 "       the file because it has a hyphen in it), or c.) perhaps there is
 "       another option I haven't considered?
-command! -nargs=? FuzzyOpen   call s:fuzzy_open(<q-args>, '')
+command! -nargs=? FuzzyOpen   call s:fuzzy_open('', <q-args>)
 command!          FuzzyKill   call s:fuzzy_kill()
 
 autocmd FileType fuzzy tnoremap <buffer> <Esc> <C-\><C-n>:FuzzyKill<CR>
