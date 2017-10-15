@@ -110,7 +110,12 @@ elseif executable(s:ag.path)
 endif
 
 command! -nargs=? FuzzyGrep   call s:fuzzy_grep(<q-args>)
-command! -nargs=? FuzzyOpen   call s:fuzzy_open(<q-args>)
+" TODO: In order to be able to pass an initial_query, I need to a.) expose a
+"       different command that accepts this an argument (and does not take a
+"       root), b.) expose a function (not sure how to do this without renaming
+"       the file because it has a hyphen in it), or c.) perhaps there is
+"       another option I haven't considered?
+command! -nargs=? FuzzyOpen   call s:fuzzy_open(<q-args>, '')
 command!          FuzzyKill   call s:fuzzy_kill()
 
 autocmd FileType fuzzy tnoremap <buffer> <Esc> <C-\><C-n>:FuzzyKill<CR>
@@ -142,7 +147,7 @@ function! s:fuzzy_grep(str) abort
   return s:fuzzy(contents, opts)
 endfunction
 
-function! s:fuzzy_open(root) abort
+function! s:fuzzy_open(root, initial_query) abort
   let root = empty(a:root) ? s:fuzzy_getroot() : a:root
   exe 'lcd' root
 
@@ -175,7 +180,7 @@ function! s:fuzzy_open(root) abort
   " Put it all together.
   let result = bufs + files
 
-  let opts = { 'lines': g:fuzzy_winheight, 'statusfmt': 'FuzzyOpen %s (%d files)', 'root': root }
+  let opts = { 'lines': g:fuzzy_winheight, 'statusfmt': 'FuzzyOpen %s (%d files)', 'root': root, 'initial_query': a:initial_query }
   function! opts.handler(result)
     return { 'name': join(a:result) }
   endfunction
@@ -197,7 +202,8 @@ function! s:fuzzy(choices, opts) abort
 
   call writefile(a:choices, inputs)
 
-  let command = g:fuzzy_executable . " -l " . a:opts.lines . " > " . outputs . " < " . inputs
+  let initial_query = has_key(a:opts, 'initial_query') ? a:opts.initial_query : ''
+  let command = g:fuzzy_executable . " -l " . a:opts.lines . " -q '" . initial_query . "' > " . outputs . " < " . inputs
   let opts = { 'outputs': outputs, 'handler': a:opts.handler, 'root': a:opts.root }
 
   function! opts.on_exit(id, code, _event) abort
